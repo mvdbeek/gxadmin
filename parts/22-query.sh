@@ -1623,6 +1623,7 @@ query_tool-memory-per-inputs() { ##? <tool_id> [--like]: See memory usage and in
 				sum(d.total_size) AS total_input_size,
 				avg(d.total_size) AS mean_input_size,
 				string_agg(DISTINCT hda.extension, ',' ORDER BY hda.extension) AS extensions,
+				string_agg(jtid.name || ',' || hda.extension || ',' || d.file_size, ',') AS input_details,
 				percentile_cont(0.5) WITHIN GROUP (ORDER BY d.total_size) AS median_input_size
 			FROM
 				job_cte j
@@ -1645,7 +1646,8 @@ query_tool-memory-per-inputs() { ##? <tool_id> [--like]: See memory usage and in
 			(m.memory_used/NULLIF(d.total_input_size,0))::bigint AS memory_used_per_input_mb,
 			(m.memory_used/NULLIF(d.mean_input_size,0))::bigint AS memory_mean_input_ratio,
 			(m.memory_used/NULLIF(d.median_input_size,0))::bigint AS memory_median_input_ratio,
-			d.extensions
+			d.extensions,
+			d.input_details
 		FROM
 			job_cte j
 		JOIN
